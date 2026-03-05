@@ -2,6 +2,7 @@
   "name": "vitalpulse",
   "version": "1.0.0",
   "description": "AI-powered personal health and productivity assistant",
+  "author": "rajuyadav03",
   "main": "main/main.js",
   "scripts": {
     "start": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
