@@ -33,3 +33,4 @@ build_err.txt
 # Native module build artifacts
 build/
 prebuilds/
+.agent/
