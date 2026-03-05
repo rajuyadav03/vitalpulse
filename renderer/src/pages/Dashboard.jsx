@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     Droplets,
     Dumbbell,
-    StretchHorizontal,
+    Expand,
     Moon,
     Target,
     Clock,
@@ -176,7 +176,7 @@ function Dashboard() {
                         {[
                             { type: 'water', value: 1, label: '+1 Water', icon: Droplets, color: 'var(--blue)', bg: 'var(--blue-dim)' },
                             { type: 'exercise', value: 1, label: '+1 Workout', icon: Dumbbell, color: 'var(--green)', bg: 'var(--green-dim)' },
-                            { type: 'stretch', value: 1, label: '+1 Stretch', icon: StretchHorizontal, color: 'var(--purple)', bg: 'var(--purple-dim)' },
+                            { type: 'stretch', value: 1, label: '+1 Stretch', icon: Expand, color: 'var(--purple)', bg: 'var(--purple-dim)' },
                             { type: 'sleep', value: 7, label: '+7hrs Sleep', icon: Moon, color: 'var(--yellow)', bg: 'var(--yellow-dim)' },
                         ].map((item) => {
                             const Icon = item.icon;

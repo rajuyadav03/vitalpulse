@@ -3,7 +3,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { Droplets, Dumbbell, StretchHorizontal, Moon, Plus, Minus } from 'lucide-react';
+import { Droplets, Dumbbell, Expand, Moon, Plus, Minus } from 'lucide-react';
 import useAppStore from '../store/appStore';
 import PageHeader from '../components/PageHeader';
 
@@ -35,7 +35,7 @@ const habitConfigs = [
         label: 'Stretch Breaks',
         target: 4,
         unit: 'breaks',
-        icon: StretchHorizontal,
+        icon: Expand,
         color: 'var(--purple)',
         bg: 'var(--purple-dim)',
         emoji: '🧘',
