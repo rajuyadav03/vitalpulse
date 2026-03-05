@@ -1,0 +1,64 @@
+{
+  "name": "vitalpulse",
+  "version": "1.0.0",
+  "description": "AI-powered personal health and productivity assistant",
+  "main": "main/main.js",
+  "scripts": {
+    "start": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
+    "dev:renderer": "cd renderer && npm run dev",
+    "build:renderer": "cd renderer && npm run build",
+    "build": "npm run build:renderer && electron-builder",
+    "rebuild": "npx @electron/rebuild -f -w better-sqlite3"
+  },
+  "build": {
+    "appId": "com.vitalpulse.app",
+    "productName": "VitalPulse",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main/**/*",
+      "services/**/*",
+      "assets/**/*",
+      "renderer/dist/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.healthcare",
+      "target": "dmg"
+    },
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    },
+    "portable": {
+      "artifactName": "VitalPulse-${version}-Portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "VitalPulse-${version}-Setup.exe"
+    }
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "better-sqlite3": "^9.6.0",
+    "dotenv": "^16.4.7",
+    "electron-updater": "^6.3.9",
+    "node-notifier": "^10.0.1"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.6.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "wait-on": "^7.2.0"
+  }
+}

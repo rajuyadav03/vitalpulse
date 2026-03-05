@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+renderer/dist/
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+err.txt
+build_err.txt
+
+# Electron
+*.asar
+
+# Native module build artifacts
+build/
+prebuilds/
