@@ -31,12 +31,13 @@ const subtitleStyle = {
     lineHeight: 1.4,
 };
 
-function PageHeader({ title, subtitle, children }) {
+function PageHeader({ title, sub, subtitle, children }) {
+    const desc = sub || subtitle;
     return (
         <div style={headerStyle}>
             <div style={titleGroupStyle}>
                 <h2 style={titleStyle}>{title}</h2>
-                {subtitle && <p style={subtitleStyle}>{subtitle}</p>}
+                {desc && <p style={subtitleStyle}>{desc}</p>}
             </div>
             {children && <div style={{ display: 'flex', gap: '8px' }}>{children}</div>}
         </div>

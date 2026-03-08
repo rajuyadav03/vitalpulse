@@ -17,13 +17,14 @@ function getTodayGoals() {
 /**
  * Add a new goal for today.
  * @param {string} text - The goal text
+ * @param {string} priority - The goal priority (high, med, low)
  * @returns {Object} The newly created goal object
  */
-function addGoal(text) {
+function addGoal(text, priority = 'med') {
     if (!text || !text.trim()) {
         throw new Error('Goal text cannot be empty');
     }
-    return dbService.addGoal(text.trim());
+    return dbService.addGoal(text.trim(), priority);
 }
 
 /**

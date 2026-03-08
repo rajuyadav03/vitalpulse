@@ -19,6 +19,9 @@ const GoalsPage = lazy(() => import('./pages/GoalsPage'));
 const HabitsPage = lazy(() => import('./pages/HabitsPage'));
 const FocusPage = lazy(() => import('./pages/FocusPage'));
 const RoutinePage = lazy(() => import('./pages/RoutinePage'));
+const RemindersPage = lazy(() => import('./pages/RemindersPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const CheckinPopup = lazy(() => import('./pages/CheckinPopup'));
 
 /**
  * PageFallback — Shown while lazy-loaded pages are loading.
@@ -79,6 +82,38 @@ function App() {
         return <LoadingScreen />;
     }
 
+    // Special standalone route for popup windows (no layout needed)
+    if (window.location.hash.startsWith('#/checkin')) {
+        return (
+            <HashRouter>
+                <Suspense fallback={<PageFallback />}>
+                    <Routes>
+                        <Route path="/checkin" element={<CheckinPopup />} />
+                    </Routes>
+                </Suspense>
+            </HashRouter>
+        );
+    }
+
+    if (!window.api) {
+        return (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-primary)', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-body)' }}>
+                <h1 style={{ color: 'var(--accent)' }}>Please Use The Desktop App</h1>
+                <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>
+                    VitalPulse requires the native Electron backend to function.<br />
+                    It appears you have opened <code>localhost:5173</code> in a web browser like Chrome or Edge.
+                </p>
+                <div style={{ marginTop: '24px', padding: '16px', background: 'var(--bg-elevated)', borderRadius: '8px', textAlign: 'left', display: 'inline-block', lineHeight: 1.6 }}>
+                    <strong>How to start correctly:</strong><br />
+                    1. Close this browser tab.<br />
+                    2. Go back to your terminal and press <code>Ctrl + C</code> to stop the current process.<br />
+                    3. Run <code>npm start</code> again.<br />
+                    4. <b>Wait</b> for the actual VitalPulse <strong>Application Window</strong> to pop up automatically. Do not manually open the <code>localhost</code> link.
+                </div>
+            </div>
+        );
+    }
+
     // Show setup wizard if not configured
     if (!isSetup) {
         return (
@@ -109,6 +144,8 @@ function App() {
                                 <Route path="/habits" element={<HabitsPage />} />
                                 <Route path="/focus" element={<FocusPage />} />
                                 <Route path="/routine" element={<RoutinePage />} />
+                                <Route path="/reminders" element={<RemindersPage />} />
+                                <Route path="/settings" element={<SettingsPage />} />
                                 <Route path="*" element={<Navigate to="/" replace />} />
                             </Routes>
                         </Suspense>

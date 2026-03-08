@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('api', {
     routine: {
         get: () => ipcRenderer.invoke('routine:get'),
         generate: (profile) => ipcRenderer.invoke('routine:generate', profile),
+        update: (data) => ipcRenderer.invoke('routine:update', data),
     },
 
     // ─── Goals ──────────────────────────────────────────────
@@ -39,6 +40,8 @@ contextBridge.exposeInMainWorld('api', {
     habits: {
         getToday: () => ipcRenderer.invoke('habits:getToday'),
         log: (type, value) => ipcRenderer.invoke('habits:log', type, value),
+        updateTarget: (type, value) => ipcRenderer.invoke('habits:updateTarget', type, value),
+        getAllLogs: () => ipcRenderer.invoke('habits:getAllLogs'),
     },
 
     // ─── Health Score ───────────────────────────────────────
@@ -52,6 +55,31 @@ contextBridge.exposeInMainWorld('api', {
         pause: () => ipcRenderer.invoke('reminders:pause'),
         resume: () => ipcRenderer.invoke('reminders:resume'),
         isPaused: () => ipcRenderer.invoke('reminders:isPaused'),
+        getCustom: () => ipcRenderer.invoke('reminders:getCustom'),
+        addCustom: (d) => ipcRenderer.invoke('reminders:addCustom', d),
+        updateCustom: (id, d) => ipcRenderer.invoke('reminders:updateCustom', id, d),
+        deleteCustom: (id) => ipcRenderer.invoke('reminders:deleteCustom', id),
+        toggleCustom: (id, a) => ipcRenderer.invoke('reminders:toggleCustom', id, a),
+        getCheckinLogs: () => ipcRenderer.invoke('reminders:getCheckinLogs'),
+    },
+
+    // ─── Settings ───────────────────────────────────────────
+    settings: {
+        getDataPath: () => ipcRenderer.invoke('settings:getDataPath'),
+        openDataFolder: () => ipcRenderer.invoke('settings:openDataFolder'),
+        exportCSV: (type) => ipcRenderer.invoke('settings:exportCSV', type),
+        exportJSON: () => ipcRenderer.invoke('settings:exportJSON'),
+        clearTodayHabits: () => ipcRenderer.invoke('settings:clearTodayHabits'),
+        deleteAllGoals: () => ipcRenderer.invoke('settings:deleteAllGoals'),
+        resetRoutine: () => ipcRenderer.invoke('settings:resetRoutine'),
+        deleteAllData: () => ipcRenderer.invoke('settings:deleteAllData'),
+        copyToClipboard: (text) => ipcRenderer.invoke('settings:copyToClipboard', text),
+    },
+
+    // ─── Checkin ────────────────────────────────────────────
+    checkin: {
+        getData: () => ipcRenderer.invoke('checkin:getData'),
+        respond: (r) => ipcRenderer.invoke('checkin:respond', r),
     },
 
     // ─── Event Listeners (main → renderer pushes) ──────────

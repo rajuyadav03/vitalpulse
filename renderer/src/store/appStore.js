@@ -68,8 +68,8 @@ const useAppStore = create((set, get) => ({
         return goals;
     },
 
-    addGoal: async (text) => {
-        const goal = await api.goals.add(text);
+    addGoal: async (text, priority = 'med') => {
+        const goal = await api.goals.add(text, priority);
         const goals = await api.goals.getToday();
         set({ goals });
         return goal;
@@ -89,18 +89,25 @@ const useAppStore = create((set, get) => ({
 
     // ─── Habits ─────────────────────────────────────────────
     habits: { water: 0, exercise: 0, stretch: 0, sleep: 0 },
+    habitTargets: { water: 8, exercise: 1, stretch: 4, sleep: 8 },
 
     loadHabits: async () => {
-        const habits = await api.habits.getToday();
-        set({ habits });
-        return habits;
+        const { current, targets } = await api.habits.getToday();
+        set({ habits: current, habitTargets: targets });
+        return { current, targets };
     },
 
     logHabit: async (type, value) => {
         const score = await api.habits.log(type, value);
-        const habits = await api.habits.getToday();
-        set({ habits, healthScore: score });
+        const { current } = await api.habits.getToday();
+        set({ habits: current, healthScore: score });
         return score;
+    },
+
+    updateHabitTarget: async (type, target) => {
+        const targets = await api.habits.updateTarget(type, target);
+        set({ habitTargets: targets });
+        return targets;
     },
 
     // ─── Health Score ───────────────────────────────────────

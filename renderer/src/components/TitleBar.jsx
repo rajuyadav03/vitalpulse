@@ -4,7 +4,8 @@
  */
 
 import React from 'react';
-import { Minus, Square, X } from 'lucide-react';
+import { Minus, Square, X, Bell, BellOff } from 'lucide-react';
+import useAppStore from '../store/appStore';
 
 const titleBarStyle = {
     height: '42px',
@@ -58,11 +59,38 @@ function TitleBar() {
     const handleMaximize = () => window.api?.window?.maximize();
     const handleClose = () => window.api?.window?.close();
 
+    const { remindersPaused, pauseReminders, resumeReminders } = useAppStore();
+
+    const today = new Date();
+    const dateString = today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+    const toggleReminders = () => {
+        if (remindersPaused) {
+            resumeReminders();
+        } else {
+            pauseReminders();
+        }
+    };
+
     return (
         <div className="drag-region" style={titleBarStyle}>
             <div style={titleStyle}>
                 <span style={logoAccent}>●</span>
                 <span>Vital<span style={logoAccent}>Pulse</span></span>
+            </div>
+
+            <div className="no-drag" style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', marginRight: '16px', gap: '16px' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>{dateString}</span>
+                <button
+                    onClick={toggleReminders}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    title={remindersPaused ? "Reminders Paused" : "Reminders Active"}
+                >
+                    {remindersPaused ?
+                        <BellOff size={14} style={{ color: 'var(--text-muted)' }} /> :
+                        <Bell size={14} style={{ color: 'var(--green)' }} />
+                    }
+                </button>
             </div>
 
             <div className="no-drag" style={controlsStyle}>

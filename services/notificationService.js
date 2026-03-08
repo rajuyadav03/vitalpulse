@@ -3,31 +3,36 @@
  * Uses node-notifier for native OS notifications.
  */
 
-const notifier = require('node-notifier');
+const { Notification } = require('electron');
 const path = require('path');
+
+let windowRef = null;
+
+function setWindowRef(win) {
+    windowRef = win;
+}
 
 /**
  * Send a system notification.
  * @param {{ title: string, message: string }} options
  */
 function send({ title, message }) {
-    const iconPath = path.join(__dirname, '..', 'assets', 'icon.png');
-
-    notifier.notify(
-        {
-            title: title || 'VitalPulse',
-            message: message || '',
-            icon: iconPath,
-            appID: 'com.vitalpulse.app',
-            sound: true,
-            wait: false,
-        },
-        (err) => {
-            if (err) {
-                console.error('[NotificationService] Failed to send notification:', err.message);
-            }
+    if (!Notification.isSupported()) return;
+    const n = new Notification({
+        title: title || 'VitalPulse',
+        body: message || '',
+        icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+        silent: false,
+        urgency: 'normal',
+        timeoutType: 'default'
+    });
+    n.on('click', () => {
+        if (windowRef) {
+            windowRef.show();
+            windowRef.focus();
         }
-    );
+    });
+    n.show();
 }
 
-module.exports = { send };
+module.exports = { send, setWindowRef };

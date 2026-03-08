@@ -12,6 +12,8 @@ import {
     Clock,
     Calendar,
     Heart,
+    Bell,
+    Settings,
 } from 'lucide-react';
 import useAppStore from '../store/appStore';
 
@@ -21,6 +23,8 @@ const navItems = [
     { path: '/habits', label: 'Habits', icon: Activity },
     { path: '/focus', label: 'Focus Mode', icon: Clock },
     { path: '/routine', label: 'My Routine', icon: Calendar },
+    { path: '/reminders', label: 'Reminders', icon: Bell },
+    { path: '/settings', label: 'Settings', icon: Settings },
 ];
 
 const sidebarStyle = {
@@ -72,11 +76,12 @@ const scoreBoxStyle = {
 function Sidebar() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { healthScore, loadHealthScore } = useAppStore();
+    const { healthScore, loadHealthScore, reminders, loadReminders } = useAppStore();
 
     useEffect(() => {
         loadHealthScore();
-    }, [loadHealthScore]);
+        loadReminders();
+    }, [loadHealthScore, loadReminders]);
 
     const getScoreColor = (grade) => {
         switch (grade) {
@@ -113,7 +118,12 @@ function Sidebar() {
                                 }
                             }}
                         >
-                            <Icon size={18} />
+                            <div style={{ position: 'relative', display: 'flex' }}>
+                                <Icon size={18} />
+                                {item.path === '/reminders' && reminders?.length > 0 && (
+                                    <span style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, background: 'var(--red)', borderRadius: '50%', border: '2px solid var(--bg-surface)' }} />
+                                )}
+                            </div>
                             <span>{item.label}</span>
                         </button>
                     );

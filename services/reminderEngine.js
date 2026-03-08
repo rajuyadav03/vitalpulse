@@ -11,6 +11,7 @@ class ReminderEngine extends EventEmitter {
         this.paused = false;
         this.recurringTimers = [];
         this.scheduledTimers = [];
+        this.customTimers = [];
         this.routine = null;
     }
 
@@ -21,10 +22,20 @@ class ReminderEngine extends EventEmitter {
     start(routine) {
         this.stop(); // Clear any existing timers
         this.routine = routine;
-        this._startRecurring();
+        this.startBase();
         if (routine) {
             this._startScheduled(routine);
         }
+    }
+
+    /**
+     * Start base reminders (water, stretch, eye rest) without a routine
+     */
+    startBase() {
+        // Clear existing recurring if any (to avoid duplicates)
+        for (const timer of this.recurringTimers) clearInterval(timer);
+        this.recurringTimers = [];
+        this._startRecurring();
     }
 
     /**
@@ -37,8 +48,12 @@ class ReminderEngine extends EventEmitter {
         for (const timer of this.scheduledTimers) {
             clearTimeout(timer);
         }
+        for (const timer of this.customTimers || []) {
+            clearTimeout(timer);
+        }
         this.recurringTimers = [];
         this.scheduledTimers = [];
+        this.customTimers = [];
     }
 
     /**
@@ -101,6 +116,23 @@ class ReminderEngine extends EventEmitter {
                 if (minutesAway < 0) minutesAway += 1440; // wrap to next day
                 upcoming.push({
                     ...s,
+                    minutesAway,
+                    isRecurring: false,
+                });
+            }
+        }
+
+        // Add custom reminders (just basic calc for upcoming visualization)
+        if (this.activeCustomReminders) {
+            for (const r of this.activeCustomReminders) {
+                const [h, m] = r.start_time.split(':').map(Number);
+                const targetMinutes = h * 60 + m;
+                let minutesAway = targetMinutes - nowMinutes;
+                if (minutesAway < 0) minutesAway += 1440;
+                upcoming.push({
+                    type: 'custom',
+                    title: `✅ ${r.name}`,
+                    message: r.notes || `Time for: ${r.name}`,
                     minutesAway,
                     isRecurring: false,
                 });
@@ -252,6 +284,67 @@ class ReminderEngine extends EventEmitter {
         }, msUntil);
 
         this.scheduledTimers.push(timer);
+    }
+
+    /**
+     * Load and schedule custom user reminders.
+     */
+    loadCustomReminders(reminders) {
+        for (const timer of this.customTimers || []) {
+            clearTimeout(timer);
+        }
+        this.customTimers = [];
+        this.activeCustomReminders = reminders.filter(r => r.active === 1);
+
+        for (const r of this.activeCustomReminders) {
+            this._scheduleCustomDaily(r);
+        }
+    }
+
+    _scheduleCustomDaily(reminder) {
+        const timeStr = reminder.start_time;
+        if (!timeStr || !timeStr.includes(':')) return;
+
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const now = new Date();
+        const target = new Date();
+        target.setHours(hours, minutes, 0, 0);
+
+        if (target <= now) {
+            target.setDate(target.getDate() + 1);
+        }
+
+        const msUntil = target.getTime() - now.getTime();
+
+        const timer = setTimeout(() => {
+            if (!this.paused) {
+                // Check repeat condition
+                const day = target.getDay(); // 0 is Sunday, 1 is Monday ... 6 is Saturday
+                let shouldFire = false;
+
+                if (reminder.repeat === 'daily') {
+                    shouldFire = true;
+                } else if (reminder.repeat === 'weekdays' && day >= 1 && day <= 5) {
+                    shouldFire = true;
+                } else if (reminder.repeat === 'weekends' && (day === 0 || day === 6)) {
+                    shouldFire = true;
+                }
+
+                if (shouldFire) {
+                    this.emit('reminder', {
+                        type: 'custom',
+                        title: reminder.name,
+                        message: reminder.notes || `Time for: ${reminder.name}`,
+                        popup: reminder.type !== 'silent',
+                        customId: reminder.id
+                    });
+                }
+            }
+            // Reschedule for next day
+            this._scheduleCustomDaily(reminder);
+        }, msUntil);
+
+        this.customTimers.push(timer);
     }
 }
 

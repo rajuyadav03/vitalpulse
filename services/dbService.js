@@ -59,7 +59,39 @@ function init() {
       value     REAL NOT NULL DEFAULT 0,
       logged_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS custom_reminders (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      name        TEXT NOT NULL,
+      start_time  TEXT NOT NULL,
+      end_time    TEXT,
+      repeat      TEXT NOT NULL DEFAULT 'daily',
+      type        TEXT NOT NULL DEFAULT 'popup',
+      notes       TEXT,
+      active      INTEGER DEFAULT 1,
+      created_at  TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS checkin_logs (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      reminder_type TEXT NOT NULL,
+      reminder_name TEXT,
+      response      TEXT NOT NULL,
+      logged_at     TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS habit_targets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT UNIQUE NOT NULL,
+      target REAL NOT NULL
+    );
+    INSERT OR IGNORE INTO habit_targets (type, target) VALUES ('water', 8), ('exercise', 1), ('stretch', 4), ('sleep', 8);
   `);
+
+    // Migrate to add priority if missing
+    try {
+        db.prepare('ALTER TABLE goals ADD COLUMN priority TEXT DEFAULT "med"').run();
+    } catch (e) { }
 
     return db;
 }
@@ -144,6 +176,10 @@ function saveRoutine(routineData) {
     return routineData;
 }
 
+function clearRoutine() {
+    db.prepare('DELETE FROM routine').run();
+}
+
 /* ─────────── Goals ─────────── */
 
 /**
@@ -165,47 +201,29 @@ function yesterdayStr() {
 }
 
 /**
- * Get today's goals, including carry-forward from yesterday.
+ * Get today's goals, including carry-forward from past uncompleted.
  * @returns {Array} Array of goal objects
  */
 function getTodayGoals() {
     const today = todayStr();
-    const yesterday = yesterdayStr();
 
-    // Carry-forward: fetch yesterday's incomplete goals
-    const yesterdayIncomplete = db
-        .prepare('SELECT * FROM goals WHERE date = ? AND completed = 0')
-        .all(yesterday);
-
-    // Get today's goal texts for dedup
-    const todayGoals = db.prepare('SELECT * FROM goals WHERE date = ?').all(today);
-    const todayTexts = new Set(todayGoals.map((g) => g.text));
-
-    // Insert carried-forward goals that aren't already in today
-    const insertStmt = db.prepare(
-        'INSERT INTO goals (text, date, completed) VALUES (?, ?, 0)'
-    );
-    for (const g of yesterdayIncomplete) {
-        if (!todayTexts.has(g.text)) {
-            insertStmt.run(g.text, today);
-        }
-    }
-
-    // Return fresh list
-    return db.prepare('SELECT * FROM goals WHERE date = ? ORDER BY id ASC').all(today);
+    // We get all goals for today, PLUS any uncompleted goal from the past.
+    // We don't need to copy them anymore, just display them and let the user complete them.
+    return db.prepare('SELECT * FROM goals WHERE date = ? OR (date < ? AND completed = 0) ORDER BY created_at ASC').all(today, today);
 }
 
 /**
  * Add a new goal for today.
  * @param {string} text - Goal text
+ * @param {string} priority - Priority (high, med, low)
  * @returns {Object} The newly created goal
  */
-function addGoal(text) {
+function addGoal(text, priority = 'med') {
     const today = todayStr();
     const stmt = db.prepare(
-        'INSERT INTO goals (text, date, completed) VALUES (?, ?, 0)'
+        'INSERT INTO goals (text, date, completed, priority) VALUES (?, ?, 0, ?)'
     );
-    const info = stmt.run(text, today);
+    const info = stmt.run(text, today, priority);
     return db.prepare('SELECT * FROM goals WHERE id = ?').get(info.lastInsertRowid);
 }
 
@@ -227,6 +245,14 @@ function completeGoal(id) {
 function deleteGoal(id) {
     db.prepare('DELETE FROM goals WHERE id = ?').run(id);
     return { success: true };
+}
+
+function getAllGoals() {
+    return db.prepare('SELECT * FROM goals ORDER BY date DESC').all();
+}
+
+function deleteAllGoals() {
+    db.prepare('DELETE FROM goals').run();
 }
 
 /* ─────────── Habit Logs ─────────── */
@@ -282,6 +308,133 @@ function getTodayGoalStats() {
     return { completed, total };
 }
 
+function getAllHabitLogs() {
+    return db.prepare('SELECT * FROM habit_logs ORDER BY logged_at DESC').all();
+}
+
+function clearTodayHabitLogs() {
+    const today = todayStr();
+    db.prepare('DELETE FROM habit_logs WHERE date = ?').run(today);
+}
+
+/* ─────────── Custom Reminders ─────────── */
+
+function getCustomReminders() {
+    return db.prepare('SELECT * FROM custom_reminders ORDER BY start_time ASC').all();
+}
+
+function addCustomReminder(data) {
+    const stmt = db.prepare(`
+        INSERT INTO custom_reminders (name, start_time, end_time, repeat, type, notes, active)
+        VALUES (@name, @start_time, @end_time, @repeat, @type, @notes, @active)
+    `);
+    const info = stmt.run({
+        ...data,
+        end_time: data.end_time || null,
+        notes: data.notes || null,
+        active: data.active !== undefined ? data.active : 1,
+    });
+    return db.prepare('SELECT * FROM custom_reminders WHERE id = ?').get(info.lastInsertRowid);
+}
+
+function updateCustomReminder(id, data) {
+    const stmt = db.prepare(`
+        UPDATE custom_reminders
+        SET name = @name, start_time = @start_time, end_time = @end_time,
+            repeat = @repeat, type = @type, notes = @notes, active = @active
+        WHERE id = @id
+    `);
+    stmt.run({
+        id,
+        ...data,
+        end_time: data.end_time || null,
+        notes: data.notes || null,
+        active: data.active !== undefined ? data.active : 1,
+    });
+}
+
+function deleteCustomReminder(id) {
+    db.prepare('DELETE FROM custom_reminders WHERE id = ?').run(id);
+}
+
+function toggleCustomReminder(id, active) {
+    db.prepare('UPDATE custom_reminders SET active = ? WHERE id = ?').run(active ? 1 : 0, id);
+}
+
+/* ─────────── Checkin Logs ─────────── */
+
+function logCheckin(type, name, response) {
+    const stmt = db.prepare(`
+        INSERT INTO checkin_logs (reminder_type, reminder_name, response)
+        VALUES (?, ?, ?)
+    `);
+    stmt.run(type, name || null, response);
+}
+
+function getCheckinLogs(limit = 30) {
+    return db.prepare('SELECT * FROM checkin_logs ORDER BY logged_at DESC LIMIT ?').all(limit);
+}
+
+/* ─────────── Habit Targets ─────────── */
+
+function getHabitTargets() {
+    const rows = db.prepare('SELECT * FROM habit_targets').all();
+    const targets = {};
+    for (const row of rows) {
+        targets[row.type] = row.target;
+    }
+    return targets;
+}
+
+function updateHabitTarget(type, target) {
+    db.prepare('UPDATE habit_targets SET target = ? WHERE type = ?').run(target, type);
+}
+
+/* ─────────── Additional Utils ─────────── */
+
+function getStreakCount() {
+    // A primitive streak calculation based on dates logged in habit_logs
+    // (Assuming any day with a completed goal or logged habit contributes to streak if it's recent)
+    // For a real 0-100 score, we'd need to compute historical score.
+    // Given the constraints and the prompt just asking for dbService.getStreakCount:
+    const rows = db.prepare('SELECT DISTINCT date FROM habit_logs ORDER BY date DESC').all();
+    let streak = 0;
+    let expectedDate = new Date();
+
+    for (const row of rows) {
+        const rowDateStr = row.date;
+        const expectedDateStr = expectedDate.toISOString().split('T')[0];
+
+        if (rowDateStr === expectedDateStr) {
+            streak++;
+            expectedDate.setDate(expectedDate.getDate() - 1);
+        } else if (streak > 0 && new Date(rowDateStr) < expectedDate) {
+            break; // Gap found
+        } else if (new Date(rowDateStr) > expectedDate) {
+            // Ignore future dates/same day diff timezone
+        } else if (streak === 0 && new Date(rowDateStr) < expectedDate) {
+            // Missed today, check if yesterday works for current streak
+            expectedDate.setDate(expectedDate.getDate() - 1);
+            if (rowDateStr === expectedDate.toISOString().split('T')[0]) {
+                streak++;
+                expectedDate.setDate(expectedDate.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+    }
+    return streak;
+}
+
+function deleteAllData() {
+    const tables = ['profile', 'routine', 'goals', 'habit_logs', 'custom_reminders', 'checkin_logs'];
+    for (const table of tables) {
+        db.prepare(`DELETE FROM ${table}`).run();
+    }
+    db.prepare('UPDATE profile SET setup_done = 0 WHERE id = 1').run(); // wait, profile is deleted, so we should insert an empty profile?
+    db.prepare('INSERT OR IGNORE INTO profile (id, name, setup_done) VALUES (1, "", 0)').run();
+}
+
 module.exports = {
     init,
     getProfile,
@@ -293,7 +446,22 @@ module.exports = {
     addGoal,
     completeGoal,
     deleteGoal,
+    getAllGoals,
+    deleteAllGoals,
     logHabit,
     getTodayHabits,
+    getAllHabitLogs,
+    clearTodayHabitLogs,
     getTodayGoalStats,
+    getCustomReminders,
+    addCustomReminder,
+    updateCustomReminder,
+    deleteCustomReminder,
+    toggleCustomReminder,
+    logCheckin,
+    getCheckinLogs,
+    getHabitTargets,
+    updateHabitTarget,
+    getStreakCount,
+    deleteAllData,
 };

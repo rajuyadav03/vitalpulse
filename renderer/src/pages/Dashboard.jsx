@@ -3,7 +3,7 @@
  * Shows greeting, health score, quick log buttons, today's goals, habits summary, and upcoming reminders.
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Droplets,
@@ -17,6 +17,9 @@ import {
     Bell,
     Zap,
     Plus,
+    X,
+    Flame,
+    List,
 } from 'lucide-react';
 import useAppStore from '../store/appStore';
 import PageHeader from '../components/PageHeader';
@@ -27,6 +30,7 @@ function Dashboard() {
         profile,
         healthScore,
         habits,
+        habitTargets,
         goals,
         reminders,
         loadHealthScore,
@@ -37,6 +41,14 @@ function Dashboard() {
         completeGoal,
         addToast,
     } = useAppStore();
+
+    const [showLogModal, setShowLogModal] = useState(false);
+    const [habitLogs, setHabitLogs] = useState([]);
+
+    const fetchLogs = async () => {
+        const logs = await window.api.habits.getAllLogs ? await window.api.habits.getAllLogs() : [];
+        setHabitLogs(logs);
+    };
 
     // Load all data on mount
     useEffect(() => {
@@ -86,27 +98,42 @@ function Dashboard() {
     return (
         <div className="page-content">
             {/* Header */}
-            <PageHeader title={getGreeting()} subtitle={todayStr}>
-                <button className="btn btn-primary" onClick={() => navigate('/focus')}>
-                    <Zap size={16} /> Start Focus
-                </button>
-            </PageHeader>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <PageHeader title={getGreeting()} subtitle={todayStr}>
+                    <button className="btn btn-primary" onClick={() => navigate('/focus')}>
+                        <Zap size={16} /> Start Focus
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => { fetchLogs(); setShowLogModal(true); }}>
+                        <List size={16} /> History
+                    </button>
+                </PageHeader>
+            </div>
+
+            <div style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px', background: 'var(--bg-elevated)', padding: '12px 16px', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--accent)' }}>
+                "{[
+                    "Small disciplines repeated with consistency every day lead to great achievements.",
+                    "Your health is your greatest wealth.",
+                    "Success is the sum of small efforts repeated day in and day out.",
+                    "Take care of your body. It's the only place you have to live."
+                ][new Date().getDay() % 4]}"
+            </div>
 
             {/* Row 1: Health Score + Quick Log */}
             <div className="grid-2 mb-lg" style={{ animationDelay: '0.05s' }}>
                 {/* Health Score Card */}
                 <div className="card animate-fade-in stagger-1">
-                    <div className="card-header">
-                        <span className="card-title">Health Score</span>
-                        <span
-                            className="badge"
-                            style={{
-                                background: `${getScoreColor(healthScore.grade)}20`,
-                                color: getScoreColor(healthScore.grade),
-                            }}
-                        >
-                            {healthScore.grade}
-                        </span>
+                    <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span className="card-title">Health Score</span>
+                            <span className="badge" style={{ background: `${getScoreColor(healthScore.grade)}20`, color: getScoreColor(healthScore.grade) }}>
+                                {healthScore.grade}
+                            </span>
+                        </div>
+                        {healthScore.streak > 0 && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--orange)', fontSize: '13px', fontWeight: 'bold' }}>
+                                <Flame size={16} /> {healthScore.streak} Day Streak!
+                            </div>
+                        )}
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '16px' }}>
@@ -221,10 +248,10 @@ function Dashboard() {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', textAlign: 'center' }}>
                             {[
-                                { label: 'Water', value: habits.water, target: 8, unit: '🥤' },
-                                { label: 'Workout', value: habits.exercise, target: 1, unit: '💪' },
-                                { label: 'Stretch', value: habits.stretch, target: 4, unit: '🧘' },
-                                { label: 'Sleep', value: habits.sleep, target: 8, unit: '😴' },
+                                { label: 'Water', value: habits.water, target: habitTargets.water || 8, unit: '🥤' },
+                                { label: 'Workout', value: habits.exercise, target: habitTargets.exercise || 1, unit: '💪' },
+                                { label: 'Stretch', value: habits.stretch, target: habitTargets.stretch || 4, unit: '🧘' },
+                                { label: 'Sleep', value: habits.sleep, target: habitTargets.sleep || 8, unit: '😴' },
                             ].map((s) => (
                                 <div key={s.label}>
                                     <div className="num" style={{ fontSize: '16px', color: 'var(--text-primary)' }}>
@@ -326,10 +353,10 @@ function Dashboard() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {[
-                            { type: 'water', label: 'Water', current: habits.water, target: 8, color: 'var(--blue)', icon: '💧' },
-                            { type: 'exercise', label: 'Exercise', current: habits.exercise, target: 1, color: 'var(--green)', icon: '💪' },
-                            { type: 'stretch', label: 'Stretch', current: habits.stretch, target: 4, color: 'var(--purple)', icon: '🧘' },
-                            { type: 'sleep', label: 'Sleep', current: habits.sleep, target: 8, color: 'var(--yellow)', icon: '😴' },
+                            { type: 'water', label: 'Water', current: habits.water, target: habitTargets.water || 8, color: 'var(--blue)', icon: '💧' },
+                            { type: 'exercise', label: 'Exercise', current: habits.exercise, target: habitTargets.exercise || 1, color: 'var(--green)', icon: '💪' },
+                            { type: 'stretch', label: 'Stretch', current: habits.stretch, target: habitTargets.stretch || 4, color: 'var(--purple)', icon: '🧘' },
+                            { type: 'sleep', label: 'Sleep', current: habits.sleep, target: habitTargets.sleep || 8, color: 'var(--yellow)', icon: '😴' },
                         ].map((h) => (
                             <div key={h.type}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -404,6 +431,35 @@ function Dashboard() {
                     )}
                 </div>
             </div>
+
+            {/* Habit Log Modal */}
+            {showLogModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+                    <div className="card animate-fade-in" style={{ width: '400px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: 'bold' }}>Habit Logs</h3>
+                            <button className="btn-icon" onClick={() => setShowLogModal(false)}>
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {habitLogs.length === 0 ? (
+                                <div style={{ color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center', padding: '20px' }}>No entries found.</div>
+                            ) : (
+                                habitLogs.map(log => (
+                                    <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--bg-elevated)', padding: '10px 12px', borderRadius: 'var(--radius-md)' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'capitalize' }}>{log.type}</span>
+                                            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{new Date(log.logged_at).toLocaleString()}</span>
+                                        </div>
+                                        <span className="num" style={{ fontSize: '14px', color: 'var(--accent)' }}>+{log.value}</span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

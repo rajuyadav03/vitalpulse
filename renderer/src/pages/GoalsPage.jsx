@@ -18,6 +18,8 @@ import PageHeader from '../components/PageHeader';
 function GoalsPage() {
     const { goals, loadGoals, addGoal, completeGoal, deleteGoal } = useAppStore();
     const [newGoalText, setNewGoalText] = useState('');
+    const [newGoalPriority, setNewGoalPriority] = useState('med');
+    const [sortMode, setSortMode] = useState('date'); // 'date' or 'priority'
 
     useEffect(() => {
         loadGoals();
@@ -26,23 +28,45 @@ function GoalsPage() {
     const handleAddGoal = async (e) => {
         e.preventDefault();
         if (!newGoalText.trim()) return;
-        await addGoal(newGoalText.trim());
+        await addGoal(newGoalText.trim(), newGoalPriority);
         setNewGoalText('');
+        setNewGoalPriority('med');
     };
 
     const completedCount = goals.filter((g) => g.completed).length;
     const totalCount = goals.length;
     const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
-    // Determine if a goal was carried forward (created today but from yesterday's pattern)
     const todayStr = new Date().toISOString().split('T')[0];
+
+    // Priority weights for sorting
+    const prioWeight = { high: 3, med: 2, low: 1 };
+
+    // Sort goals
+    const sortedGoals = [...goals].sort((a, b) => {
+        if (sortMode === 'priority') {
+            return (prioWeight[b.priority || 'med'] || 0) - (prioWeight[a.priority || 'med'] || 0) || a.id - b.id;
+        }
+        return a.id - b.id; // date/id order default
+    });
 
     return (
         <div className="page-content">
-            <PageHeader
-                title="Today's Goals"
-                subtitle="Set your daily targets and track progress"
-            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <PageHeader title="Today's Goals" subtitle="Set your daily targets and track progress" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sort by:</span>
+                    <select
+                        className="input"
+                        style={{ padding: '6px 12px', fontSize: '13px' }}
+                        value={sortMode}
+                        onChange={(e) => setSortMode(e.target.value)}
+                    >
+                        <option value="date">Date Added</option>
+                        <option value="priority">Priority</option>
+                    </select>
+                </div>
+            </div>
 
             {/* Progress Summary */}
             <div className="card mb-lg animate-fade-in">
@@ -85,6 +109,16 @@ function GoalsPage() {
                         onChange={(e) => setNewGoalText(e.target.value)}
                         style={{ flex: 1 }}
                     />
+                    <select
+                        className="input"
+                        value={newGoalPriority}
+                        onChange={(e) => setNewGoalPriority(e.target.value)}
+                        style={{ width: '100px' }}
+                    >
+                        <option value="high">🔥 High</option>
+                        <option value="med">⚡ Med</option>
+                        <option value="low">🌱 Low</option>
+                    </select>
                     <button
                         type="submit"
                         className="btn btn-primary"
@@ -99,7 +133,7 @@ function GoalsPage() {
             {/* Goals List */}
             {goals.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {goals.map((goal, index) => (
+                    {sortedGoals.map((goal, index) => (
                         <div
                             key={goal.id}
                             className="card animate-fade-in"
@@ -130,20 +164,33 @@ function GoalsPage() {
                                 {goal.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                             </button>
 
-                            {/* Goal Text */}
+                            {/* Goal Text & Properties */}
                             <div style={{ flex: 1 }}>
-                                <span
-                                    style={{
-                                        fontSize: '14px',
-                                        color: goal.completed ? 'var(--text-muted)' : 'var(--text-primary)',
-                                        textDecoration: goal.completed ? 'line-through' : 'none',
-                                        transition: 'all var(--transition-fast)',
-                                    }}
-                                >
-                                    {goal.text}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span
+                                        style={{
+                                            fontSize: '14px',
+                                            color: goal.completed ? 'var(--text-muted)' : 'var(--text-primary)',
+                                            textDecoration: goal.completed ? 'line-through' : 'none',
+                                            transition: 'all var(--transition-fast)',
+                                        }}
+                                    >
+                                        {goal.text}
+                                    </span>
+                                    {!goal.completed && (
+                                        <span style={{
+                                            fontSize: '11px',
+                                            padding: '2px 6px',
+                                            borderRadius: 'var(--radius-sm)',
+                                            background: goal.priority === 'high' ? 'var(--red-dim)' : goal.priority === 'low' ? 'var(--green-dim)' : 'var(--blue-dim)',
+                                            color: goal.priority === 'high' ? 'var(--red)' : goal.priority === 'low' ? 'var(--green)' : 'var(--blue)'
+                                        }}>
+                                            {goal.priority === 'high' ? 'High' : goal.priority === 'low' ? 'Low' : 'Med'}
+                                        </span>
+                                    )}
+                                </div>
                                 {/* Carry-forward indicator */}
-                                {goal.date === todayStr && goal.created_at && !goal.created_at.includes(todayStr) && (
+                                {goal.date < todayStr && (
                                     <span
                                         style={{
                                             display: 'inline-flex',

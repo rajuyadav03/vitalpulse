@@ -2,8 +2,8 @@
  * HabitsPage.jsx — Habit logging with progress rings and detailed tracking.
  */
 
-import React, { useEffect } from 'react';
-import { Droplets, Dumbbell, Expand, Moon, Plus, Minus } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Droplets, Dumbbell, Expand, Moon, Plus, Minus, Edit2, Check, X } from 'lucide-react';
 import useAppStore from '../store/appStore';
 import PageHeader from '../components/PageHeader';
 
@@ -91,11 +91,33 @@ function ProgressRing({ progress, color, size = 100, strokeWidth = 6 }) {
 }
 
 function HabitsPage() {
-    const { habits, loadHabits, logHabit, healthScore, loadHealthScore, addToast } = useAppStore();
+    const { habits, habitTargets, loadHabits, logHabit, updateHabitTarget, healthScore, loadHealthScore, addToast } = useAppStore();
+    const [editingTarget, setEditingTarget] = useState(null);
+    const [tempTarget, setTempTarget] = useState('');
+    const [weeklyData, setWeeklyData] = useState([]);
+
+    const loadWeeklyData = async () => {
+        const logs = await window.api.habits.getAllLogs();
+
+        const last7Days = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            return d.toISOString().split('T')[0];
+        }).reverse();
+
+        const data = last7Days.map(date => ({ date, water: 0, exercise: 0, stretch: 0, sleep: 0 }));
+
+        logs.forEach(log => {
+            const day = data.find(d => d.date === log.date);
+            if (day) day[log.type] += log.value;
+        });
+        setWeeklyData(data);
+    };
 
     useEffect(() => {
         loadHabits();
         loadHealthScore();
+        loadWeeklyData();
     }, [loadHabits, loadHealthScore]);
 
     const handleLog = async (type, value) => {
@@ -105,6 +127,16 @@ function HabitsPage() {
             message: `${value > 0 ? '+' : ''}${value} ${type} recorded`,
             type: 'success',
         });
+        loadWeeklyData();
+    };
+
+    const handleSaveTarget = async (type) => {
+        const val = parseFloat(tempTarget);
+        if (!isNaN(val) && val > 0) {
+            await updateHabitTarget(type, val);
+            addToast({ title: 'Target Updated', message: `New target for ${type}: ${val}`, type: 'success' });
+        }
+        setEditingTarget(null);
     };
 
     return (
@@ -115,11 +147,12 @@ function HabitsPage() {
             />
 
             {/* Habit Cards Grid */}
-            <div className="grid-2" style={{ gap: '20px' }}>
+            <div className="grid-2" style={{ gap: '20px', marginBottom: '32px' }}>
                 {habitConfigs.map((config, index) => {
+                    const target = habitTargets[config.type] || config.target;
                     const current = habits[config.type] || 0;
-                    const progress = Math.min(100, (current / config.target) * 100);
-                    const isComplete = current >= config.target;
+                    const progress = Math.min(100, (current / target) * 100);
+                    const isComplete = current >= target;
 
                     return (
                         <div
@@ -127,7 +160,6 @@ function HabitsPage() {
                             className="card animate-fade-in"
                             style={{
                                 animationDelay: `${index * 0.05}s`,
-                                opacity: 0,
                                 borderColor: isComplete ? `${config.color}30` : 'var(--border)',
                             }}
                         >
@@ -147,9 +179,29 @@ function HabitsPage() {
                                         <div className="num" style={{ fontSize: '22px', color: config.color, lineHeight: 1 }}>
                                             {current}
                                         </div>
-                                        <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                                            /{config.target}
-                                        </div>
+                                        {editingTarget === config.type ? (
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                                                <input
+                                                    type="number"
+                                                    value={tempTarget}
+                                                    onChange={e => setTempTarget(e.target.value)}
+                                                    style={{ width: '40px', textAlign: 'center', fontSize: '11px', padding: '2px', background: 'var(--bg-body)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                                                    autoFocus
+                                                />
+                                                <div style={{ display: 'flex', gap: '4px' }}>
+                                                    <button onClick={() => handleSaveTarget(config.type)} style={{ background: 'none', border: 'none', color: 'var(--green)', cursor: 'pointer' }}><Check size={12} /></button>
+                                                    <button onClick={() => setEditingTarget(null)} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer' }}><X size={12} /></button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div
+                                                style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px', marginTop: '2px' }}
+                                                onClick={() => { setEditingTarget(config.type); setTempTarget(target.toString()); }}
+                                                title="Edit Target"
+                                            >
+                                                /{target} <Edit2 size={8} />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -204,6 +256,51 @@ function HabitsPage() {
                         </div>
                     );
                 })}
+            </div>
+
+            {/* Weekly View Chart */}
+            <div className="card animate-fade-in stagger-4">
+                <div className="card-header">
+                    <span className="card-title">Weekly Overview</span>
+                </div>
+                <div style={{ display: 'flex', gap: '16px', height: '200px', alignItems: 'flex-end', padding: '16px 0', overflowX: 'auto' }}>
+                    {weeklyData.map((day, i) => {
+                        const dateObj = new Date(day.date);
+                        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                        // calculate relative heights based on targets
+                        const waterH = Math.min(100, (day.water / (habitTargets.water || 8)) * 100);
+                        const exerciseH = Math.min(100, (day.exercise / (habitTargets.exercise || 1)) * 100);
+                        const stretchH = Math.min(100, (day.stretch / (habitTargets.stretch || 4)) * 100);
+                        const sleepH = Math.min(100, (day.sleep / (habitTargets.sleep || 8)) * 100);
+
+                        return (
+                            <div key={day.date} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', minWidth: '40px' }}>
+                                <div style={{ display: 'flex', gap: '2px', height: '150px', alignItems: 'flex-end', width: '100%', justifyContent: 'center' }}>
+                                    <div style={{ width: '8px', height: `${waterH}%`, background: 'var(--blue)', borderRadius: '4px 4px 0 0', opacity: waterH > 0 ? 1 : 0.1 }} title={`Water: ${day.water}`} />
+                                    <div style={{ width: '8px', height: `${exerciseH}%`, background: 'var(--green)', borderRadius: '4px 4px 0 0', opacity: exerciseH > 0 ? 1 : 0.1 }} title={`Exercise: ${day.exercise}`} />
+                                    <div style={{ width: '8px', height: `${stretchH}%`, background: 'var(--purple)', borderRadius: '4px 4px 0 0', opacity: stretchH > 0 ? 1 : 0.1 }} title={`Stretch: ${day.stretch}`} />
+                                    <div style={{ width: '8px', height: `${sleepH}%`, background: 'var(--yellow)', borderRadius: '4px 4px 0 0', opacity: sleepH > 0 ? 1 : 0.1 }} title={`Sleep: ${day.sleep}`} />
+                                </div>
+                                <span style={{ fontSize: '11px', color: i === 6 ? 'var(--accent)' : 'var(--text-muted)', fontWeight: i === 6 ? 600 : 400 }}>
+                                    {i === 6 ? 'Today' : dayName}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
+                    {[
+                        { label: 'Water', color: 'var(--blue)' },
+                        { label: 'Exercise', color: 'var(--green)' },
+                        { label: 'Stretch', color: 'var(--purple)' },
+                        { label: 'Sleep', color: 'var(--yellow)' },
+                    ].map(legend => (
+                        <div key={legend.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: legend.color }} />
+                            {legend.label}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
