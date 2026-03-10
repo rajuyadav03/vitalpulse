@@ -9,7 +9,7 @@ import PageHeader from '../components/PageHeader';
 import useAppStore from '../store/appStore';
 
 function SettingsPage() {
-    const { profile, initApp, loadHealthScore, addToast, setProfile } = useAppStore();
+    const { profile, initApp, loadHealthScore, addToast, setProfile, resetApp } = useAppStore();
 
     const [formData, setFormData] = useState({});
     const [dataPath, setDataPath] = useState('');
@@ -94,7 +94,7 @@ function SettingsPage() {
     const handleDeleteAllData = async () => {
         if (deleteInput === 'DELETE') {
             await window.api.settings.deleteAllData();
-            setProfile(null);
+            resetApp();
             navigate('/setup');
         }
     };

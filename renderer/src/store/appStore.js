@@ -36,6 +36,22 @@ const useAppStore = create((set, get) => ({
         return profile;
     },
 
+    setProfile: (profile) => set({ profile }),
+
+    resetApp: () => {
+        set({
+            profile: null,
+            isSetup: false,
+            routine: null,
+            goals: [],
+            habits: { water: 0, exercise: 0, stretch: 0, sleep: 0 },
+            habitTargets: { water: 8, exercise: 1, stretch: 4, sleep: 8 },
+            healthScore: { total: 0, grade: 'D', message: '', breakdown: {} },
+            reminders: [],
+            toasts: []
+        });
+    },
+
     // ─── Routine ────────────────────────────────────────────
     routine: null,
     routineLoading: false,

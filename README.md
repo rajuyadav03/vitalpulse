@@ -113,6 +113,16 @@ vitalpulse/
         └── pages/              ← Setup, Dashboard, Goals, Habits, Focus, Routine
 ```
 
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Windows blocks the app | Click "More info" → "Run anyway" |
+| macOS shows "App is damaged" | Open Terminal and run: `xattr -cr /Applications/VitalPulse.app` |
+| macOS blocks the app | System Preferences → Security → Open Anyway |
+| Blank white screen | Make sure Vite dev server is running (`npm start`) |
+| Native module crash | Run `npx @electron/rebuild -f -w better-sqlite3` |
+
 ## License
 
 MIT

@@ -20,8 +20,11 @@ A complete guide to install and run VitalPulse on any PC.
 
 1. Download the `.dmg` file from Releases
 2. Open the `.dmg` and drag **VitalPulse** to your **Applications** folder
-3. Open VitalPulse from Applications
-4. If macOS blocks it: go to **System Preferences → Security & Privacy → Open Anyway**
+3. **Important:** If macOS says the app is "damaged and can't be opened":
+   - Open **Terminal**
+   - Run this command: `xattr -cr /Applications/VitalPulse.app`
+   - Now you can open the app normally!
+4. Alternatively, go to **System Preferences → Security & Privacy → Open Anyway**
 
 ### Linux
 
@@ -159,6 +162,7 @@ When VitalPulse opens for the first time, you'll see a **4-step setup wizard**:
 | Problem | Solution |
 |---------|----------|
 | Windows blocks the app | Click "More info" → "Run anyway" |
+| macOS shows "App is damaged" | Open Terminal and run: `xattr -cr /Applications/VitalPulse.app` |
 | macOS blocks the app | System Preferences → Security → Open Anyway |
 | Blank white screen | Make sure Vite dev server is running (`npm start`) |
 | Native module crash | Run `npx @electron/rebuild -f -w better-sqlite3` |

@@ -1,8 +1,0 @@
-
-Unhandled Promise Rejection: SqliteError: near "/": syntax error
-    at Database.exec (E:\maintainer\vitalpulse\node_modules\better-sqlite3\lib\methods\wrappers.js:9:14)
-    at Object.init (E:\maintainer\vitalpulse\services\dbService.js:25:8)
-    at initServices (E:\maintainer\vitalpulse\main\main.js:173:15)
-    at E:\maintainer\vitalpulse\main\main.js:512:5 {
-  code: 'SQLITE_ERROR'
-}

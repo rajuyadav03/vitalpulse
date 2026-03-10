@@ -427,12 +427,11 @@ function getStreakCount() {
 }
 
 function deleteAllData() {
-    const tables = ['profile', 'routine', 'goals', 'habit_logs', 'custom_reminders', 'checkin_logs'];
+    const tables = ['profile', 'routine', 'goals', 'habit_logs', 'custom_reminders', 'checkin_logs', 'habit_targets'];
     for (const table of tables) {
         db.prepare(`DELETE FROM ${table}`).run();
     }
-    db.prepare('UPDATE profile SET setup_done = 0 WHERE id = 1').run(); // wait, profile is deleted, so we should insert an empty profile?
-    db.prepare('INSERT OR IGNORE INTO profile (id, name, setup_done) VALUES (1, "", 0)').run();
+    db.prepare("INSERT OR IGNORE INTO profile (id, name, setup_done) VALUES (1, '', 0)").run();
 }
 
 module.exports = {
@@ -463,5 +462,6 @@ module.exports = {
     getHabitTargets,
     updateHabitTarget,
     getStreakCount,
+    clearRoutine,
     deleteAllData,
 };

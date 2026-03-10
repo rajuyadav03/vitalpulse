@@ -509,6 +509,8 @@ function _pushHealthScore() {
 // ─── App Lifecycle ──────────────────────────────────────────
 
 app.whenReady().then(() => {
+    app.setAppUserModelId('com.vitalpulse.app');
+
     initServices();
     registerIPC();
     createWindow();
