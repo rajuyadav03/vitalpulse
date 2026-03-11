@@ -103,20 +103,14 @@ function Sidebar() {
                         <button
                             key={item.path}
                             id={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
-                            style={navItemStyle(isActive)}
+                            className="btn-ghost"
+                            style={{
+                                // Override btn-ghost styles for active state
+                                background: isActive ? 'var(--accent-dim)' : undefined,
+                                color: isActive ? 'var(--accent)' : undefined,
+                                fontWeight: isActive ? 600 : undefined,
+                            }}
                             onClick={() => navigate(item.path)}
-                            onMouseEnter={(e) => {
-                                if (!isActive) {
-                                    e.currentTarget.style.background = 'var(--bg-elevated)';
-                                    e.currentTarget.style.color = 'var(--text-primary)';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!isActive) {
-                                    e.currentTarget.style.background = 'transparent';
-                                    e.currentTarget.style.color = 'var(--text-secondary)';
-                                }
-                            }}
                         >
                             <div style={{ position: 'relative', display: 'flex' }}>
                                 <Icon size={18} />

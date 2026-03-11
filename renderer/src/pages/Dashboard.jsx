@@ -109,7 +109,7 @@ function Dashboard() {
                 </PageHeader>
             </div>
 
-            <div style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px', background: 'var(--bg-elevated)', padding: '12px 16px', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--accent)' }}>
+            <div style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px', background: 'var(--bg-glass)', backdropFilter: 'blur(8px)', padding: '16px 20px', borderRadius: 'var(--radius-lg)', borderLeft: '4px solid var(--accent)', boxShadow: 'var(--shadow-sm)' }}>
                 "{[
                     "Small disciplines repeated with consistency every day lead to great achievements.",
                     "Your health is your greatest wealth.",
@@ -232,32 +232,33 @@ function Dashboard() {
                                     onMouseLeave={(e) => {
                                         e.currentTarget.style.borderColor = 'transparent';
                                         e.currentTarget.style.transform = 'scale(1)';
+                                        e.currentTarget.style.boxShadow = 'none';
                                     }}
                                 >
-                                    <Icon size={22} />
-                                    <span style={{ fontSize: '12px', fontWeight: 600 }}>{item.label}</span>
+                                    <Icon size={24} style={{ filter: `drop-shadow(0 0 8px ${item.color})` }} />
+                                    <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.3px' }}>{item.label}</span>
                                 </button>
                             );
                         })}
                     </div>
 
                     {/* Current Stats */}
-                    <div style={{ marginTop: '16px', padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-lg)' }}>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    <div style={{ marginTop: '20px', padding: '16px', background: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 600 }}>
                             Today's Progress
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px', textAlign: 'center' }}>
                             {[
-                                { label: 'Water', value: habits.water, target: habitTargets.water || 8, unit: '🥤' },
-                                { label: 'Workout', value: habits.exercise, target: habitTargets.exercise || 1, unit: '💪' },
-                                { label: 'Stretch', value: habits.stretch, target: habitTargets.stretch || 4, unit: '🧘' },
-                                { label: 'Sleep', value: habits.sleep, target: habitTargets.sleep || 8, unit: '😴' },
+                                { label: 'Water', value: habits.water, target: habitTargets.water || 8, unit: '💧', color: 'var(--blue)' },
+                                { label: 'Workout', value: habits.exercise, target: habitTargets.exercise || 1, unit: '⚡', color: 'var(--green)' },
+                                { label: 'Stretch', value: habits.stretch, target: habitTargets.stretch || 4, unit: '🧘', color: 'var(--purple)' },
+                                { label: 'Sleep', value: habits.sleep, target: habitTargets.sleep || 8, unit: '🌙', color: 'var(--yellow)' },
                             ].map((s) => (
                                 <div key={s.label}>
-                                    <div className="num" style={{ fontSize: '16px', color: 'var(--text-primary)' }}>
+                                    <div className="num" style={{ fontSize: '18px', color: 'var(--text-primary)', textShadow: `0 0 10px ${s.color}40`, marginBottom: '4px' }}>
                                         {s.value}/{s.target}
                                     </div>
-                                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{s.label}</div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600 }}>{s.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -405,9 +406,22 @@ function Dashboard() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        padding: '8px 10px',
-                                        background: 'var(--bg-elevated)',
+                                        padding: '12px 14px',
+                                        background: 'var(--bg-glass)',
+                                        border: '1px solid var(--border-glass)',
                                         borderRadius: 'var(--radius-md)',
+                                        boxShadow: 'var(--shadow-sm)',
+                                        transition: 'all var(--transition-fast)',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = 'var(--bg-glass-hover)';
+                                        e.currentTarget.style.borderColor = 'var(--border-glass-strong)';
+                                        e.currentTarget.style.transform = 'translateY(-1px)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = 'var(--bg-glass)';
+                                        e.currentTarget.style.borderColor = 'var(--border-glass)';
+                                        e.currentTarget.style.transform = 'translateY(0)';
                                     }}
                                 >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -447,9 +461,9 @@ function Dashboard() {
                                 <div style={{ color: 'var(--text-muted)', fontSize: '13px', textAlign: 'center', padding: '20px' }}>No entries found.</div>
                             ) : (
                                 habitLogs.map(log => (
-                                    <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--bg-elevated)', padding: '10px 12px', borderRadius: 'var(--radius-md)' }}>
+                                    <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--bg-glass)', border: '1px solid var(--border-glass)', padding: '12px 16px', borderRadius: 'var(--radius-md)' }}>
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span style={{ fontSize: '13px', fontWeight: 'bold', textTransform: 'capitalize' }}>{log.type}</span>
+                                            <span style={{ fontSize: '14px', fontWeight: 'bold', textTransform: 'capitalize' }}>{log.type}</span>
                                             <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{new Date(log.logged_at).toLocaleString()}</span>
                                         </div>
                                         <span className="num" style={{ fontSize: '14px', color: 'var(--accent)' }}>+{log.value}</span>

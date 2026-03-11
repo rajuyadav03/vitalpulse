@@ -11,9 +11,11 @@ const titleBarStyle = {
     height: '42px',
     display: 'flex',
     alignItems: 'center',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    background: 'var(--bg-surface)',
-    borderBottom: '1px solid var(--border)',
+    background: 'var(--bg-glass)',
+    backdropFilter: 'blur(16px)',
+    borderBottom: '1px solid var(--border-glass)',
     padding: '0 8px 0 16px',
     userSelect: 'none',
     flexShrink: 0,
@@ -23,15 +25,16 @@ const titleStyle = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    fontSize: '13px',
-    fontWeight: 600,
-    color: 'var(--text-secondary)',
+    fontSize: '14px',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
     letterSpacing: '0.5px',
 };
 
 const logoAccent = {
     color: 'var(--accent)',
-    fontWeight: 700,
+    fontWeight: 800,
+    textShadow: '0 0 10px var(--accent-glow)',
 };
 
 const controlsStyle = {
@@ -138,10 +141,12 @@ function TitleBar() {
                     onMouseEnter={(e) => {
                         e.currentTarget.style.background = 'var(--red)';
                         e.currentTarget.style.color = '#fff';
+                        e.currentTarget.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.4)';
                     }}
                     onMouseLeave={(e) => {
                         e.currentTarget.style.background = 'transparent';
                         e.currentTarget.style.color = 'var(--text-secondary)';
+                        e.currentTarget.style.boxShadow = 'none';
                     }}
                     aria-label="Close"
                 >
