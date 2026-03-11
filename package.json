@@ -51,8 +51,7 @@
     "axios": "^1.7.9",
     "better-sqlite3": "^9.6.0",
     "dotenv": "^16.4.7",
-    "electron-updater": "^6.3.9",
-    "node-notifier": "^10.0.1"
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "@electron/rebuild": "^3.6.1",

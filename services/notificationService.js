@@ -1,9 +1,9 @@
 /**
  * notificationService.js — Cross-platform system notification wrapper.
- * Uses node-notifier for native OS notifications.
+ * Uses Electron's native Notification API for reliable OS notifications.
  */
 
-const notifier = require('node-notifier');
+const { Notification } = require('electron');
 const path = require('path');
 
 let windowRef = null;
@@ -17,24 +17,26 @@ function setWindowRef(win) {
  * @param {{ title: string, message: string }} options
  */
 function send({ title, message }) {
-    notifier.notify(
-        {
+    if (Notification.isSupported()) {
+        const notification = new Notification({
             title: title || 'VitalPulse',
-            message: message || '',
+            body: message || '',
             icon: path.join(__dirname, '..', 'assets', 'icon.png'),
-            sound: true,
-            wait: true,
-            appID: 'com.vitalpulse.app'
-        },
-        (err, response) => {
-            if (response === 'click' || response === 'timeout') {
-                if (windowRef) {
-                    windowRef.show();
-                    windowRef.focus();
-                }
+            silent: false,
+        });
+
+        notification.on('click', () => {
+            if (windowRef) {
+                if (windowRef.isMinimized()) windowRef.restore();
+                windowRef.show();
+                windowRef.focus();
             }
-        }
-    );
+        });
+
+        notification.show();
+    } else {
+        console.warn('System notifications are not supported on this OS.');
+    }
 }
 
 module.exports = { send, setWindowRef };
