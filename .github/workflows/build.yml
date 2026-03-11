@@ -54,24 +54,29 @@ jobs:
       - name: Build renderer (Vite)
         run: npm run build:renderer
 
-      - name: Build Electron app & Auto Publish
-        run: npx electron-builder --${{ matrix.platform }} --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
+      - name: Build Electron app
+        run: npx electron-builder --${{ matrix.platform }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create GitHub Release (Auto Publish)
-        if: startsWith(github.ref, 'refs/tags/v') && matrix.os == 'ubuntu-latest'
+      - name: Upload installers to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          files: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.zip
+            dist/*.blockmap
+            dist/latest*.yml
           generate_release_notes: true
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Upload artifacts for non-tag builds (manual dispatch)
-      - name: Upload build artifacts
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+      - name: Upload build artifacts to GitHub Actions
         uses: actions/upload-artifact@v4
         with:
           name: VitalPulse-${{ matrix.platform }}
@@ -80,4 +85,6 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
             dist/*.zip
-          if-no-files-found: ignore
+            dist/*.blockmap
+            dist/latest*.yml
+          if-no-files-found: warn
