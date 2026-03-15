@@ -11,7 +11,6 @@ const titleBarStyle = {
     height: '42px',
     display: 'flex',
     alignItems: 'center',
-    alignItems: 'center',
     justifyContent: 'space-between',
     background: 'var(--bg-glass)',
     backdropFilter: 'blur(16px)',

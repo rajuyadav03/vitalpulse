@@ -83,7 +83,8 @@ function App() {
     }
 
     // Special standalone route for popup windows (no layout needed)
-    if (window.location.hash.includes('checkin')) {
+    const currentHash = window.location.hash || '';
+    if (currentHash.includes('checkin') || window.location.href.includes('checkin')) {
         return (
             <HashRouter>
                 <Suspense fallback={<PageFallback />}>
