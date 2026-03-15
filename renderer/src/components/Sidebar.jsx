@@ -104,12 +104,7 @@ function Sidebar() {
                             key={item.path}
                             id={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                             className="btn-ghost"
-                            style={{
-                                // Override btn-ghost styles for active state
-                                background: isActive ? 'var(--accent-dim)' : undefined,
-                                color: isActive ? 'var(--accent)' : undefined,
-                                fontWeight: isActive ? 600 : undefined,
-                            }}
+                            style={navItemStyle(isActive)}
                             onClick={() => navigate(item.path)}
                         >
                             <div style={{ position: 'relative', display: 'flex' }} aria-hidden="true">

@@ -1,6 +1,6 @@
 {
   "name": "vitalpulse",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "AI-powered personal health and productivity assistant",
   "author": "rajuyadav03",
   "main": "main/main.js",

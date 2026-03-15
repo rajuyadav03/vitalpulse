@@ -99,7 +99,7 @@ function Dashboard() {
     return (
         <div className="page-content">
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ marginBottom: '16px' }}>
                 <PageHeader title={getGreeting()} subtitle={todayStr}>
                     <button className="btn btn-primary" onClick={() => navigate('/focus')}>
                         <Zap size={16} /> Start Focus
