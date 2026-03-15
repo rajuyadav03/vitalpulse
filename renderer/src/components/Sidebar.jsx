@@ -59,7 +59,7 @@ const navItemStyle = (isActive) => ({
     border: 'none',
     width: '100%',
     textAlign: 'left',
-    fontSize: '13px',
+    fontSize: '14px', /* Pro Max: Base 14px */
     fontWeight: isActive ? 600 : 400,
     fontFamily: 'inherit',
 });
@@ -112,7 +112,7 @@ function Sidebar() {
                             }}
                             onClick={() => navigate(item.path)}
                         >
-                            <div style={{ position: 'relative', display: 'flex' }}>
+                            <div style={{ position: 'relative', display: 'flex' }} aria-hidden="true">
                                 <Icon size={18} />
                                 {item.path === '/reminders' && reminders?.length > 0 && (
                                     <span style={{ position: 'absolute', top: -2, right: -2, width: 8, height: 8, background: 'var(--red)', borderRadius: '50%', border: '2px solid var(--bg-surface)' }} />

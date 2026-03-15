@@ -15,6 +15,7 @@ import {
     CheckCircle2,
     Circle,
     Bell,
+    BellOff,
     Zap,
     Plus,
     X,
@@ -321,8 +322,9 @@ function Dashboard() {
                             )}
                         </div>
                     ) : (
-                        <div className="empty-state" style={{ padding: '20px 0' }}>
-                            <p className="empty-state-text">No goals set today</p>
+                        <div className="empty-state" style={{ padding: '32px 0' }}>
+                            <Target size={32} className="empty-state-icon" style={{ opacity: 0.1, color: 'var(--text-secondary)' }} />
+                            <p className="empty-state-text" style={{ marginBottom: '8px' }}>No goals set today</p>
                             <button
                                 className="btn btn-secondary btn-sm"
                                 onClick={() => navigate('/goals')}
@@ -439,7 +441,8 @@ function Dashboard() {
                             ))}
                         </div>
                     ) : (
-                        <div className="empty-state" style={{ padding: '20px 0' }}>
+                        <div className="empty-state" style={{ padding: '32px 0' }}>
+                            <BellOff size={32} className="empty-state-icon" style={{ opacity: 0.1, color: 'var(--text-secondary)' }} />
                             <p className="empty-state-text">No upcoming reminders</p>
                         </div>
                     )}

@@ -114,6 +114,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─────────── Accessibility (Pro Max) ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 /* ─────────── Typography ─────────── */
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
@@ -191,6 +207,15 @@ button {
   border: none;
   outline: none;
   transition: all var(--transition-fast);
+  min-height: 44px; /* Pro Max: Touch Target Size */
+  min-width: 44px; /* Pro Max: Touch Target Size */
+}
+
+button:disabled, .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn {
@@ -283,8 +308,8 @@ button {
 }
 
 .btn-icon {
-  width: 32px;
-  height: 32px;
+  width: 44px; /* Pro Max: Minimum Touch Target Size */
+  height: 44px; /* Pro Max: Minimum Touch Target Size */
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -295,7 +320,7 @@ button {
 /* ─────────── Inputs ─────────── */
 input, select, textarea {
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px; /* Pro Max: Minimum 16px to prevent iOS zoom */
   color: var(--text-primary);
   background: var(--bg-input);
   border: 1px solid var(--border-mid);
@@ -304,6 +329,12 @@ input, select, textarea {
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   width: 100%;
+  min-height: 44px; /* Pro Max: Touch Target Size */
+}
+
+input:disabled, select:disabled, textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -598,12 +629,10 @@ label {
 /* ─────────── Drag Region (for frameless window) ─────────── */
 .drag-region {
   -webkit-app-region: drag;
-  app-region: drag;
 }
 
 .no-drag {
   -webkit-app-region: no-drag;
-  app-region: no-drag;
 }
 
 /* ─────────── Toast Container ─────────── */
@@ -701,6 +730,7 @@ label {
 .num {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
+  font-variant-numeric: tabular-nums; /* Pro Max: Prevents layout shift */
 }
 
 .num-lg {

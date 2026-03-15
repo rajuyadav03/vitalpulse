@@ -44,8 +44,8 @@ const controlsStyle = {
 };
 
 const controlBtnBase = {
-    width: '36px',
-    height: '30px',
+    minWidth: '44px', /* Pro Max: Touch Target Size */
+    minHeight: '44px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
