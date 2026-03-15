@@ -33,7 +33,7 @@ function createCheckinPopup(reminderData) {
     if (process.env.NODE_ENV === 'development') {
         popupWindowRef.loadURL('http://localhost:5173/#/checkin');
     } else {
-        popupWindowRef.loadFile(path.join(__dirname, '..', 'renderer', 'dist', 'index.html'), { hash: 'checkin' });
+        popupWindowRef.loadFile(path.join(__dirname, '..', 'renderer', 'dist', 'index.html'), { hash: '/checkin' });
     }
 
     // Auto-close after 30 seconds
